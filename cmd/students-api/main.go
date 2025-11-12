@@ -1,0 +1,70 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/konda-manish/internal/config"
+)
+
+func main() {
+
+	// print("Hello world")
+	// fmt.Print("Welcome to the Students API")
+	// Load config
+	cfg := config.MustLoad()
+	// fmt.Printf("config: %+v\n", cfg)
+
+	//database setup
+
+	//setup router
+	router := http.NewServeMux()
+
+	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Welcome to the Students API"))
+
+	})
+
+	//set up server
+
+	server := &http.Server{ // this is to create a new server
+		Addr:    cfg.HTTPServer.Address,
+		Handler: router,
+	}
+
+	fmt.Println("server started on port", cfg.HTTPServer.Address)
+
+	done := make(chan os.Signal, 1)
+
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+
+		err := server.ListenAndServe() // this is to start the server // this is to listen and serve the server
+
+		if err != nil {
+			log.Fatalf("failed to start server: %v", err)
+		}
+	}()
+
+	<-done
+
+	slog.Info("shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := server.Shutdown(ctx)
+	if err != nil {
+		slog.Error("failed to shutdown server", slog.String("error", err.Error()))
+	}
+
+	slog.Info("server shutdown successfully")
+
+}
