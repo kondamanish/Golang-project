@@ -1,5 +1,5 @@
 env : "dev"
 
-storage_path : "/Users/manish/Desktop/golang-student/storage/storage.db"
+storage_path : "storage/storage.db"
 http_server_port:
   address: "localhost:8082"
