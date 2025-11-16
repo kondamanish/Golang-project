@@ -13,6 +13,7 @@ import (
 
 	"github.com/konda-manish/internal/config"
 	"github.com/konda-manish/internal/http/handlers/student"
+	"github.com/konda-manish/internal/storage/sqlite"
 )
 
 func main() {
@@ -24,11 +25,21 @@ func main() {
 	// fmt.Printf("config: %+v\n", cfg)
 
 	//database setup
+	storage, err := sqlite.New(cfg)
+
+	if err != nil {
+		log.Fatalf("failed to create database: %v", err)
+	}
+
+	slog.Info("storage initialized", slog.String("env", cfg.Env), slog.String("storage_path", cfg.StoragePath))
 
 	//setup router
 	router := http.NewServeMux()
 
-	router.HandleFunc("POST /api/students", student.New())
+	router.HandleFunc("POST /api/students", student.New(storage))         //this is to handle the new student creation
+	router.HandleFunc("GET /api/students/{id}", student.GetById(storage)) //this is to handle the new student creation
+	router.HandleFunc("GET /api/students", student.GetList(storage))      //this is to handle the new student creation
+	router.HandleFunc("DELETE /api/students/{id}", student.DeleteById(storage))
 
 	//set up server
 
@@ -58,7 +69,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := server.Shutdown(ctx)
+	err = server.Shutdown(ctx)
 	if err != nil {
 		slog.Error("failed to shutdown server", slog.String("error", err.Error()))
 	}
