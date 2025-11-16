@@ -296,11 +296,7 @@ curl -X DELETE http://localhost:8082/api/students/1
 - [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3) - SQLite driver
 - [ilyakaznacheev/cleanenv](https://github.com/ilyakaznacheev/cleanenv) - Configuration management
 
-## License
-
-[Add your license here]
-
 ## Author
 
-[Add your name/contact information here]
+Manish kumar
 
